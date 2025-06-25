@@ -32,7 +32,7 @@ public class AppConfig {
 			.csrf().disable()
 			.cors().configurationSource(request -> {
 				CorsConfiguration cfg = new CorsConfiguration();
-				cfg.setAllowedOrigins(Arrays.asList("http://todo.anshitha.cloud/"));
+				cfg.setAllowedOrigins(Arrays.asList("http://todo.anshitha.cloud"));
 				cfg.setAllowedMethods(Collections.singletonList("*"));
 				cfg.setAllowCredentials(true);
 				cfg.setAllowedHeaders(Collections.singletonList("*"));
