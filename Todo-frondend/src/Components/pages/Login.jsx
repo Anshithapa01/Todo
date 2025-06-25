@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { fetchUserProfile, signinUser } from "../../Store/authSlice";
+import Alert from "../otherComponents/Alert";
 
 const Login = () => {
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({ email: "", password: "" });
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [showAlert, setShowAlert] = useState(false);
+  const [alert, setAlert] = useState({message:'',status:''});
   const { loading, error } = useSelector((state) => state.auth);
 
   const validate = () => {
@@ -37,19 +40,32 @@ const Login = () => {
     return valid;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (validate()) {
-      dispatch(signinUser(loginData)).then(() => {
-        dispatch(fetchUserProfile());
-        navigate("/home");
-      });
-    }
-  };
+  if (!validate()) return;
+
+  try {
+    const result = await dispatch(signinUser(loginData)).unwrap(); // unwrap will throw if rejected
+    await dispatch(fetchUserProfile());
+    navigate("/home");
+  } catch (errorMessage) {
+    setAlert({ message: errorMessage, status: "error" });
+    setShowAlert(true);
+    console.error("Login failed:", errorMessage);
+  }
+};
 
   return (
     <div className="flex w-full items-center justify-center min-h-screen bg-gray-100">
+      {showAlert && (
+          <Alert  
+            message={alert.message}
+            status={alert.status}
+            onClose={() =>{
+              setShowAlert(false);
+              setAlert({ message: '', status: '' });}} 
+          />)}
       <div className="bg-white shadow-lg rounded-lg p-8 w-96">
         <h2 className="text-2xl font-semibold text-center text-gray-700 mb-4">Login</h2>
         <form onSubmit={handleSubmit} className="space-y-4">

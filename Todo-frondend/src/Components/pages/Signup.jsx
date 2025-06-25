@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { signupUser } from "../../Store/authSlice";
 import { useNavigate } from "react-router-dom";
+import Alert from "../otherComponents/Alert";
 
 const Signup = () => {
   const [userData, setUserData] = useState({
@@ -10,7 +11,8 @@ const Signup = () => {
     password: "",
   });
   const [errors, setErrors] = useState({});
-
+  const [showAlert, setShowAlert] = useState(false);
+  const [alert, setAlert] = useState({message:'',status:''});
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
@@ -32,15 +34,33 @@ const Signup = () => {
     return Object.keys(tempErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validate()) {
-      dispatch(signupUser(userData)).then(() => navigate("/home"));
-    }
-  };
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!validate()) return;
+
+  try {
+    const result = await dispatch(signupUser(userData)).unwrap(); // will throw if rejected
+    await dispatch(fetchUserProfile());
+    navigate("/home");
+  } catch (errorMessage) {
+    setAlert({ message: errorMessage, status: "error" });
+    setShowAlert(true);
+    console.error("Signup failed:", errorMessage);
+  }
+};
+
 
   return (
     <div className="flex w-full items-center justify-center min-h-screen bg-gray-100">
+      {showAlert && (
+          <Alert  
+            message={alert.message}
+            status={alert.status}
+            onClose={() =>{
+              setShowAlert(false);
+              setAlert({ message: '', status: '' });}} 
+          />)}
       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Sign Up</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
